@@ -1,0 +1,52 @@
+body {
+    margin: 0%;
+    overflow: hidden;
+    background: rgb(20, 25, 45);
+}
+
+canvas {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+}
+#sphere {
+    position: absolute;
+    width: 50vh;
+    height: 50vh;
+    background: rgb(126, 178, 255);
+    border-radius: 50%;
+    z-index: -2;
+    filter: blur(400px);
+    left: 40%;
+    top: 10%;
+}
+#sphere2 {
+    position: absolute;
+    width: 50vh;
+    height: 50vh;
+    background: rgb(78, 255, 240);
+    border-radius: 50%;
+    z-index: -2;
+    filter: blur(400px);
+    left: 70%;
+    top: 0;
+}
+textarea {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 10px;
+    height: 100px;
+    width: 120px;
+    background: rgba(64, 69, 83, 0.27);
+    backdrop-filter: blur(10px);
+    border: none;
+    color: white;
+    font-size: 1.5em;
+    font-family: 'Courier New', Courier, monospace;
+    outline: none;
+    white-space: nowrap;
+    resize: none;
+    border-radius: 10px;
+    border: 2px solid rgba(20, 45, 106, 0.49);
+}
