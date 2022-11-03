@@ -19,8 +19,10 @@ canvas {
     filter: blur(400px);
     left: 40%;
     top: 10%;
+    pointer-events: none;
 }
 #sphere2 {
+    pointer-events: none;
     position: absolute;
     width: 50vh;
     height: 50vh;
@@ -30,6 +32,22 @@ canvas {
     filter: blur(400px);
     left: 70%;
     top: 0;
+}
+#tutorial{
+    pointer-events: none;
+    color: white;
+    font-size: 1em;
+    font-family: 'Roboto', sans-serif;
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    opacity: 0.5;
+    text-align: right;
+    z-index: -3;
+}
+#tutorial p{
+    margin: 0;
+    padding: 0;
 }
 textarea {
     position: absolute;

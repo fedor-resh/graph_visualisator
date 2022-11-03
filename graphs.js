@@ -16,8 +16,9 @@
     let w, h, mouse, dots, takenDot, graph;
     takenDot = null;
     dots = []
+
     class Dot {
-        constructor(index, x = mouse.x, y=mouse.y) {
+        constructor(index, x = mouse.x, y = mouse.y) {
             this.pos = {x: x + random(-2, +2), y: y + random(-2, +2)}
             this.vel = {x: 0, y: 0}
             this.rad = config.dotRad
@@ -46,7 +47,7 @@
             this.updateTextArea()
         }
 
-        tryGraph(matrix){
+        tryGraph(matrix) {
             const {table, size} = Graph.strToTable(matrix)
             if (Graph.isValid(table, size)) {
                 this.table = table
@@ -58,29 +59,29 @@
             }
         }
 
-        addDot(){
+        addDot() {
             dots.push(new Dot(dots.length))
             this.size++
         }
 
-        addLink(from, to){
-            if(this.table[from]){
+        addLink(from, to) {
+            if (this.table[from]) {
                 this.table[from].push(to)
-            }else{
+            } else {
                 this.table[from] = [to]
             }
         }
 
-        updateTextArea(){
+        updateTextArea() {
             textarea.value = Graph.tableToStr(this.table)
             autoResizeOfTextArea()
         }
 
-        static tableToStr(table){
+        static tableToStr(table) {
             let str = ''
             table.forEach(
                 (row, i) => {
-                    str += ++i + ' ' + row.map(x=>++x).join(' ') + '\n'
+                    str += ++i + ' ' + row.map(x => ++x).join(' ') + '\n'
                 }
             )
             return str
@@ -93,7 +94,7 @@
             );
         }
 
-        static strToTable(matrix){
+        static strToTable(matrix) {
             matrix = matrix
                 .replace(/^\s+|\s+$/g, '')
                 .split(`\n`)
@@ -149,10 +150,10 @@
 
 
                 let force = (dist - config.sphereRad) / dist * b.mass;
-                if(graph.table[i]?.includes(j) || graph.table[j]?.includes(i)){
+                if (graph.table[i]?.includes(j) || graph.table[j]?.includes(i)) {
                     force = (dist - config.sphereRad + 100) / dist * b.mass;
                 }
-                if(graph.table[i]?.includes(j) && graph.table[j]?.includes(i)){
+                if (graph.table[i]?.includes(j) && graph.table[j]?.includes(i)) {
                     force = (dist - config.sphereRad + 200) / dist * b.mass;
                 }
                 acc.x += delta.x * force;
@@ -176,7 +177,7 @@
             if (i === takenDot) {
                 dots[i].pos.x = mouse.x;
                 dots[i].pos.y = mouse.y;
-            }else{
+            } else {
                 dots[i].vel.x = dots[i].vel.x * config.smooth + acc.x * dots[i].mass;
                 dots[i].vel.y = dots[i].vel.y * config.smooth + acc.y * dots[i].mass;
             }
@@ -249,12 +250,17 @@
         h = canvas.height = innerHeight;
         mouse = {x: w / 2, y: h / 2, down: false, leftDown: false, selectedDot: null}
         dots = []
-        graph = new Graph(`1 2 3\n2 1 3\n3 1`)
+        graph = new Graph(`
+3 1 2
+4 5
+5 4 2 3 6
+6 2 3
+`)
     }
 
     function loop() {
         ctx.clearRect(0, 0, w, h);
-        if (mouse.selectedDot !== null){
+        if (mouse.selectedDot !== null) {
             drawArrow(
                 ctx,
                 dots[mouse.selectedDot]?.pos.x,
@@ -279,12 +285,12 @@
         e.preventDefault()
         const leftButton = 0
         const rightButton = 2
-        if(e.button === rightButton){
+        if (e.button === rightButton) {
             mouse.down = !mouse.down;
             if (!mouse.down) {
                 takenDot = null
             }
-        }else{
+        } else {
             mouse.leftDown = !mouse.leftDown;
             const hoveredDot = findHoveredDot()
             if (!mouse.leftDown) {
@@ -298,16 +304,17 @@
                     graph.updateTextArea()
                 }
                 mouse.selectedDot = null
-            }else{
-                if(hoveredDot !== null){
+            } else {
+                if (hoveredDot !== null) {
                     mouse.selectedDot = hoveredDot
-                }else{
+                } else {
                     graph.addDot()
                     mouse.selectedDot = graph.size - 1
                 }
             }
         }
     }
+
     function findHoveredDot() {
         let idOfDot = null
         dots.forEach((dot, id) => {
@@ -326,11 +333,12 @@
         graph.tryGraph(e.target.value)
         autoResizeOfTextArea()
     })
+
     function autoResizeOfTextArea() {
         textarea.style.height = "5px";
         textarea.style.width = "5px";
-        textarea.style.height = (textarea.scrollHeight)+"px";
-        textarea.style.width = (textarea.scrollWidth)+"px";
+        textarea.style.height = (textarea.scrollHeight) + "px";
+        textarea.style.width = (textarea.scrollWidth) + "px";
     }
 })();
 //https://docs.pyscript.net/latest/howtos/passing-objects.html
