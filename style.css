@@ -1,5 +1,5 @@
 body {
-    margin: 0%;
+    margin: 0;
     overflow: hidden;
     background: rgb(20, 25, 45);
 }
@@ -9,6 +9,28 @@ canvas {
     inset: 0;
     z-index: -1;
 }
+
+textarea {
+    position: absolute;
+    top: 50px;
+    left: 10px;
+    padding: 10px;
+    background: rgba(64, 69, 83, 0.27);
+    backdrop-filter: blur(10px);
+    color: white;
+    font-size: 1.5em;
+    font-family: 'Courier New', Courier, monospace;
+    outline: none;
+    white-space: nowrap;
+    resize: none;
+    border-radius: 10px;
+    border: 2px solid rgba(20, 45, 106, 0.49);
+}
+textarea::-webkit-scrollbar{
+    width: 0;
+    background: transparent;
+}
+
 #sphere {
     position: absolute;
     width: 50vh;
@@ -49,22 +71,19 @@ canvas {
     margin: 0;
     padding: 0;
 }
-textarea {
-    position: absolute;
-    top: 10px;
-    left: 10px;
+#colors{
+    display: flex;
     padding: 10px;
-    height: 100px;
-    width: 120px;
-    background: rgba(64, 69, 83, 0.27);
-    backdrop-filter: blur(10px);
-    border: none;
-    color: white;
-    font-size: 1.5em;
-    font-family: 'Courier New', Courier, monospace;
-    outline: none;
-    white-space: nowrap;
-    resize: none;
-    border-radius: 10px;
-    border: 2px solid rgba(20, 45, 106, 0.49);
+    gap: 5px;
+}
+#colors div{
+    transition: 0.2s;
+    cursor: pointer;
+    border-radius: 1000px;
+    width: 30px;
+    height: 30px;
+    border: 2px solid white;
+}
+#colors div:hover, #colors .selected{
+    transform: scale(1.1);
 }

@@ -6,15 +6,17 @@
         bigDotRad: 35,
         mouseSize: 120,
         massFactor: 0.002,
-        defColor: `rgba(250, 10, 30, 0.7)`,
+        defColor: `#FA0A1E`,
         smooth: 0.85,
     }
     const TWO_PI = 2 * Math.PI;
     const canvas = document.querySelector(`canvas`);
     const textarea = document.getElementById('textarea');
     const ctx = canvas.getContext(`2d`);
-    let w, h, mouse, dots, takenDot, graph;
-    takenDot = null;
+    const colorsDiv = document.getElementById('colors');
+    let w, h, mouse, dots, graph;
+    let takenDot = null;
+    let selectedColor = config.defColor;
     dots = []
 
     class Dot {
@@ -25,6 +27,7 @@
             this.mass = this.rad * config.massFactor;
             this.color = config.defColor;
             this.number = index
+            this.isHovered = false
         }
 
         static number = 0
@@ -33,8 +36,8 @@
             this.pos.x = x || this.pos.x + this.vel.x;
             this.pos.y = y || this.pos.y + this.vel.y;
 
-            createCircle(this.pos.x, this.pos.y, this.rad, true, this.color);
-            createCircle(this.pos.x, this.pos.y, this.rad, false, config.defColor);
+            createCircle(this.pos.x, this.pos.y, this.rad, true, this.color + (this.isHovered ? '90' : 'B0'));
+            createCircle(this.pos.x, this.pos.y, this.rad, false, this.color);
             ctx.fillStyle = "#FFF";
             ctx.font = "bold 20px Arial";
             ctx.fillText(this.number + 1, this.pos.x - (this.rad / 2) + 3, this.pos.y + (this.rad / 2) - 2);
@@ -61,6 +64,7 @@
 
         addDot() {
             dots.push(new Dot(dots.length))
+            dots[dots.length - 1].color = selectedColor
             this.size++
         }
 
@@ -161,10 +165,10 @@
 
             }
             if (isMouseHover(dots[i])) {
-                dots[i].color = `rgba(250, 10, 30, 0.9)`;
+                dots[i].isHovered = true
                 document.body.style.cursor = 'pointer'
             } else {
-                dots[i].color = config.defColor;
+                dots[i].isHovered = false
                 if (!(document.body.style.cursor === 'pointer' && i > 0)) {
                     document.body.style.cursor = 'default'
                 }
@@ -191,7 +195,8 @@
         return dist <= config.dotRad
     }
 
-    function drawArrow(context, fromx, fromy, tox, toy) {
+    function drawArrow(context, color, fromx, fromy, tox, toy) {
+        ctx.fillStyle = ctx.strokeStyle = color;
         context.beginPath()
         let headlen = 15; // length of head in pixels
         let dx = tox - fromx;
@@ -214,6 +219,7 @@
             toy - headlen * Math.sin(angle + Math.PI / 6)
         )
         context.stroke()
+        context.strokeStyle = config.defColor
         context.lineWidth = 2
         context.closePath()
     }
@@ -223,6 +229,7 @@
             node.forEach(dot => {
                 drawArrow(
                     ctx,
+                    dots[id].color,
                     dots[id]?.pos.x,
                     dots[id]?.pos.y,
                     dots[dot]?.pos.x,
@@ -260,9 +267,10 @@
 
     function loop() {
         ctx.clearRect(0, 0, w, h);
-        if (mouse.selectedDot !== null) {
+        if (mouse.selectedDot !== null && mouse.selectedDot !== findHoveredDot()) {
             drawArrow(
                 ctx,
+                dots[mouse.selectedDot].color,
                 dots[mouse.selectedDot]?.pos.x,
                 dots[mouse.selectedDot]?.pos.y,
                 mouse.x,
@@ -283,7 +291,6 @@
 
     function isDown(e) {
         e.preventDefault()
-        const leftButton = 0
         const rightButton = 2
         if (e.button === rightButton) {
             mouse.down = !mouse.down;
@@ -302,6 +309,9 @@
                 ) {
                     graph.addLink(mouse.selectedDot, hoveredDot)
                     graph.updateTextArea()
+                }
+                if (mouse.selectedDot === hoveredDot) {
+                    dots[hoveredDot].color = selectedColor;
                 }
                 mouse.selectedDot = null
             } else {
@@ -325,6 +335,13 @@
         return idOfDot
     }
 
+    function autoResizeOfTextArea() {
+        textarea.style.height = "5px";
+        textarea.style.width = "5px";
+        textarea.style.height = (textarea.scrollHeight) + "px";
+        textarea.style.width = (textarea.scrollWidth) + "px";
+    }
+
     window.addEventListener(`mousemove`, setPos);
     canvas.addEventListener(`mousedown`, isDown);
     window.addEventListener(`contextmenu`, e => e.preventDefault());
@@ -333,12 +350,17 @@
         graph.tryGraph(e.target.value)
         autoResizeOfTextArea()
     })
+    let colorsDivs = Array.from(colorsDiv.children)
+    colorsDivs[0].classList.add('selected')
+    colorsDivs.forEach(el => {
+        el.style.backgroundColor = el.dataset.color + '80'
+        el.style.borderColor = el.dataset.color
+        el.addEventListener(`click`, () => {
+            selectedColor = el.dataset.color
+            colorsDivs.forEach(el => el.classList.remove('selected'))
+            el.classList.add('selected')
+        })
+    })
 
-    function autoResizeOfTextArea() {
-        textarea.style.height = "5px";
-        textarea.style.width = "5px";
-        textarea.style.height = (textarea.scrollHeight) + "px";
-        textarea.style.width = (textarea.scrollWidth) + "px";
-    }
 })();
 //https://docs.pyscript.net/latest/howtos/passing-objects.html
