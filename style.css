@@ -13,7 +13,7 @@ canvas {
 textarea {
     position: absolute;
     top: 50px;
-    left: 10px;
+    left: 15px;
     padding: 10px;
     background: rgba(64, 69, 83, 0.27);
     backdrop-filter: blur(10px);
@@ -75,6 +75,7 @@ textarea::-webkit-scrollbar{
     display: flex;
     padding: 10px;
     gap: 5px;
+    margin-left: 10px;
 }
 #colors div{
     transition: 0.2s;
