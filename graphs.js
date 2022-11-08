@@ -50,93 +50,86 @@
             this.updateTextArea()
         }
 
-        tryGraph(matrix) {
-            const {table, size} = Graph.strToTable(matrix)
-            if (Graph.isValid(table, size)) {
-                this.table = table
-                this.size = size
-                dots = []
-                for (let i = 0; i < this.size; i++) {
-                    dots.push(new Dot(i, w / 2, h / 2))
-                }
+        tryGraph(strMatrix) {
+            const {matrix, size} = Graph.strToMatrix(strMatrix)
+            if (!Graph.isValid(matrix, size)) return
+            this.matrix = matrix
+            this.size = size
+            dots = []
+            for (let i = 0; i < this.size; i++) {
+                dots.push(new Dot(i, w / 2, h / 2))
             }
+            this.isSuspended = this.getIsSuspended()
+            console.log(this.matrix);
+        }
+
+        getIsSuspended() {
+            return !this.matrix.every(row => row.every(el => el === 0 || el === 1))
         }
 
         addDot() {
             dots.push(new Dot(dots.length))
             dots[dots.length - 1].color = selectedColor
             this.size++
+            this.matrix.forEach(row => row.push(0))
+            this.matrix.push(new Array(this.size).fill(0))
+            this.updateTextArea()
         }
 
         addLink(from, to) {
-            if (this.table[from]) {
-                this.table[from].push(to)
-            } else {
-                this.table[from] = [to]
-            }
+            this.matrix[from][to] = 1
         }
 
+
         updateTextArea() {
-            textarea.value = Graph.tableToStr(this.table)
+            textarea.value = Graph.matrixToStr(this.matrix)
             autoResizeOfTextArea()
         }
 
-        static tableToStr(table) {
-            let str = ''
-            table.forEach(
-                (row, i) => {
-                    str += ++i + ' ' + row.map(x => ++x).join(' ') + '\n'
-                }
-            )
-            return str
+        static matrixToStr(table) {
+            return table.map(row => row.join(' ')).join('\n')
         }
 
-        static isValid(table, size) {
-            return table.every(row =>
-                size > row.length
-                && row.length > 0
-            );
+        static isValid(matrix, size) {
+            return matrix.length === size && matrix.every(row => row.length === size);
         }
 
-        static strToTable(matrix) {
-            matrix = matrix
+        static strToMatrix(str) {
+            let matrix = str
                 .replace(/^\s+|\s+$/g, '')
                 .split(`\n`)
-                .map(row => row.split(` `).map(x => --x));
+                .map(row => row.split(` `).map(x => +x));
             let size, table
             if (Graph.isMatrix(matrix)) {
                 size = matrix.length;
-                table = Graph.getTableFromMatrix(matrix);
             } else {
-                size = matrix.reduce((max, row) => Math.max(max, ...row), 0) + 1;
-                table = Graph.convertTable(matrix);
+                matrix = matrix.map(row => row.map(x => x-1))
+                console.log(matrix);
+                matrix = Graph.getMatrixFromTable(matrix);
+                size = matrix.length
             }
-            return {table, size}
+            return {matrix, size}
         }
 
         static isMatrix(matrix) {
             return matrix.every((row, id) => row.length && row.length === matrix.length && row[id] === 0);
         }
 
-        static getTableFromMatrix(matrix) {
-            let table = []
-            matrix.forEach((row, i) => {
-                table.push([])
-                row.forEach((cell, j) => {
-                    if (cell === 0) {
-                        table[i].push(j)
-                    }
-                });
-            });
-            return table
-        }
 
-        static convertTable(table) {
+        static getMatrixFromTable(table) {
             const convertedTable = [];
             table.forEach((row) => {
                 convertedTable[row[0]] = row.slice(1)
             });
-            return convertedTable
+            const size = convertedTable.reduce((acc, row) => Math.max(acc, ...row), 0) + 1;
+            const matrix = [];
+            for (let i = 0; i < size; i++) {
+                matrix[i] = [];
+                for (let j = 0; j < size; j++) {
+                    matrix[i][j] = convertedTable[i]?.includes(j) ? 1 : 0;
+                }
+            }
+            return matrix;
         }
     }
 
@@ -152,14 +145,23 @@
                 let delta = {x: b.pos.x - a.pos.x, y: b.pos.y - a.pos.y}
                 let dist = Math.sqrt(delta.x * delta.x + delta.y * delta.y) || 1;
 
+                let linkDistance = config.sphereRad
+                if (graph.isSuspended) {
+                    if(graph.matrix[i][j] || graph.matrix[j][i]) {
+                        const maxWeightInGraph = Math.max(...graph.matrix.flat())
+                        const maxWeightInPair = Math.max(graph.matrix[i][j], graph.matrix[j][i])
+                        linkDistance = config.sphereRad / maxWeightInGraph * maxWeightInPair
+                    }
+                } else {
+                    if (graph.matrix[i][j] || graph.matrix[j][i]) {
+                        linkDistance -= 100
+                    }
+                    if (graph.matrix[i][j] && graph.matrix[j][i]) {
+                        linkDistance -= 200
+                    }
+                }
 
-                let force = (dist - config.sphereRad) / dist * b.mass;
-                if (graph.table[i]?.includes(j) || graph.table[j]?.includes(i)) {
-                    force = (dist - config.sphereRad + 100) / dist * b.mass;
-                }
-                if (graph.table[i]?.includes(j) && graph.table[j]?.includes(i)) {
-                    force = (dist - config.sphereRad + 200) / dist * b.mass;
-                }
+                const force = (dist - linkDistance) / dist * b.mass;
                 acc.x += delta.x * force;
                 acc.y += delta.y * force;
 
@@ -195,7 +197,7 @@
         return dist <= config.dotRad
     }
 
-    function drawArrow(context, color, fromx, fromy, tox, toy) {
+    function drawArrow(context, color, fromx, fromy, tox, toy, weight) {
         ctx.fillStyle = ctx.strokeStyle = color;
         context.beginPath()
         let headlen = 15; // length of head in pixels
@@ -222,18 +224,24 @@
         context.strokeStyle = config.defColor
         context.lineWidth = 2
         context.closePath()
+        if(weight){
+            context.fillText(weight, (fromx + tox) / 2, (fromy + toy) / 2)
+            context.fillStyle = color
+        }
     }
 
     function drawLinks() {
-        graph.table.forEach((node, id) => {
-            node.forEach(dot => {
+        graph.matrix.forEach((row, from) => {
+            row.forEach((weight, to) => {
+                if (!weight) return;
                 drawArrow(
                     ctx,
-                    dots[id].color,
-                    dots[id]?.pos.x,
-                    dots[id]?.pos.y,
-                    dots[dot]?.pos.x,
-                    dots[dot]?.pos.y
+                    dots[from].color,
+                    dots[from]?.pos.x,
+                    dots[from]?.pos.y,
+                    dots[to]?.pos.x,
+                    dots[to]?.pos.y,
+                    graph.isSuspended && weight
                 )
             })
         })
@@ -304,11 +312,18 @@
 
                 if (
                     hoveredDot !== null
-                    && !graph.table[mouse.selectedDot]?.includes(hoveredDot)
                     && mouse.selectedDot !== hoveredDot
                 ) {
-                    graph.addLink(mouse.selectedDot, hoveredDot)
-                    graph.updateTextArea()
+                    if(graph.matrix[mouse.selectedDot][hoveredDot]){
+                        if(graph.isSuspended){
+                            graph.matrix[mouse.selectedDot][hoveredDot] = +prompt('Введите вес связи', graph.matrix[mouse.selectedDot][hoveredDot])
+                        }else{
+                            graph.matrix[mouse.selectedDot][hoveredDot] = 0
+                        }
+                    }else{
+                        graph.addLink(mouse.selectedDot, hoveredDot)
+                        graph.updateTextArea()
+                    }
                 }
                 if (mouse.selectedDot === hoveredDot) {
                     dots[hoveredDot].color = selectedColor;
