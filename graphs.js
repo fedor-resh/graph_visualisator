@@ -150,7 +150,7 @@
                     if(graph.matrix[i][j] || graph.matrix[j][i]) {
                         const maxWeightInGraph = Math.max(...graph.matrix.flat())
                         const maxWeightInPair = Math.max(graph.matrix[i][j], graph.matrix[j][i])
-                        linkDistance = config.sphereRad / maxWeightInGraph * maxWeightInPair
+                        linkDistance = linkDistance / maxWeightInGraph * maxWeightInPair
                     }
                 } else {
                     if (graph.matrix[i][j] || graph.matrix[j][i]) {
@@ -225,8 +225,10 @@
         context.lineWidth = 2
         context.closePath()
         if(weight){
-            context.fillText(weight, (fromx + tox) / 2, (fromy + toy) / 2)
             context.fillStyle = color
+            context.fillText(weight, (fromx + tox) / 2, (fromy + toy) / 2)
+            context.fillStyle = '#FFFFFF33'
+            context.fillText(weight, (fromx + tox) / 2, (fromy + toy) / 2)
         }
     }
 
